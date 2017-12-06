@@ -386,7 +386,6 @@ add_executable(main_ui
     ${INCLUDE_DIR}/ui/connectiondialog.h
     ${INCLUDE_DIR}/ui/shortcutedit.h
     ${INCLUDE_DIR}/ui/shortcutssettings.h
-    ${INCLUDE_DIR}/ui/mainwindowwithdetachabledockwidgets.h
     ${SRC_DIR}/ui/main.cc
     ${SRC_DIR}/ui/logwidget.cc
     ${SRC_DIR}/ui/veles_mainwindow.cc
@@ -416,7 +415,6 @@ add_executable(main_ui
     ${SRC_DIR}/ui/connectiondialog.cc
     ${SRC_DIR}/ui/shortcutedit.cc
     ${SRC_DIR}/ui/shortcutssettings.cc
-    ${SRC_DIR}/ui/mainwindowwithdetachabledockwidgets.cc
     ${RESOURCES}
     ${VISUALIZATION_SHADERS}
     ${FORMS}
@@ -721,3 +719,19 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Veles tool for binary data analysis")
 set(CPACK_MONOLITHIC_INSTALL)
 set(CPACK_STRIP_FILES false)
 include(CPack)
+
+
+add_executable(disasm_test
+    ${MSGPACK_CPP_HEADER}
+    ${INCLUDE_DIR}/ui/disasm/disasm.h
+    ${INCLUDE_DIR}/ui/disasm/mocks.h
+    ${INCLUDE_DIR}/ui/disasm/asmgen.h
+    ${SRC_DIR}/ui/disasm/disasm.cc
+    ${SRC_DIR}/data/bindata.cc
+    ${SRC_DIR}/ui/disasm/mocks.cc
+    ${SRC_DIR}/ui/disasm/asmgen.cc
+    ${SRC_DIR}/util/random.cc
+    ${TEST_DIR}/disasm_test.cc
+)
+add_dependencies(disasm_test msgpack-c)
+qt5_use_modules(disasm_test Core)
