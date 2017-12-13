@@ -30,6 +30,7 @@
 #include "dbif/types.h"
 #include "dbif/universe.h"
 #include "ui/databaseinfo.h"
+#include "ui/disasm/disasmwidget.h"
 #include "ui/hexeditwidget.h"
 #include "ui/logwidget.h"
 #include "ui/nodetreewidget.h"
@@ -416,6 +417,9 @@ void VelesMainWindow::createHexEditTab(const QString& fileName,
 }
 
 void VelesMainWindow::createLogWindow() {
+  auto disasmwidget = new DisasmWidget();
+  addDockWidget(Qt::LeftDockWidgetArea, disasmwidget);
+
   auto* dock_widget = new DockWidget;
   dock_widget->setAllowedAreas(Qt::AllDockWidgetAreas);
   dock_widget->setWindowTitle("Log");
