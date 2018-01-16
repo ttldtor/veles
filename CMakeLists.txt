@@ -364,6 +364,9 @@ add_executable(main_ui
     ${INCLUDE_DIR}/ui/disasm/disasmwidget.h
     ${INCLUDE_DIR}/ui/disasm/addresscolumn.h
     ${INCLUDE_DIR}/ui/disasm/richtextwidget.h
+    ${INCLUDE_DIR}/ui/disasm/disasm.h
+    ${INCLUDE_DIR}/ui/disasm/mocks.h
+    ${INCLUDE_DIR}/ui/disasm/asmgen.h
     ${INCLUDE_DIR}/ui/dockwidget.h
     ${INCLUDE_DIR}/ui/dockwidget_native.h
     ${INCLUDE_DIR}/ui/hexeditwidget.h
@@ -396,6 +399,11 @@ add_executable(main_ui
     ${SRC_DIR}/ui/disasm/disasmwidget.cc
     ${SRC_DIR}/ui/disasm/addresscolumn.cc
     ${SRC_DIR}/ui/disasm/richtextwidget.cc
+    ${SRC_DIR}/ui/disasm/disasm.cc
+    ${SRC_DIR}/data/bindata.cc
+    ${SRC_DIR}/ui/disasm/mocks.cc
+    ${SRC_DIR}/ui/disasm/asmgen.cc
+    ${SRC_DIR}/util/random.cc
     ${SRC_DIR}/ui/dockwidget.cc
     ${SRC_DIR}/ui/dockwidget_native.cc
     ${SRC_DIR}/ui/hexeditwidget.cc

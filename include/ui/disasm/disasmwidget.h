@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QtWidgets/QHBoxLayout>
+#include <QtWidgets/QTextEdit>
 #include "richtextwidget.h"
 #include "ui/disasm/addresscolumn.h"
 
@@ -15,7 +16,7 @@ class DisasmWidget : public QWidget {
   Q_OBJECT
   QHBoxLayout main_layout;
   AddressColumnWidget address_column;
-  RichTextWidget rich_text_widget;
+  QTextEdit rich_text_widget;
 
  public:
   DisasmWidget();
