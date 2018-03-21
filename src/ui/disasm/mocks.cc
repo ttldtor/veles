@@ -422,6 +422,8 @@ MockBackend::MockBackend(std::shared_ptr<ChunkNode> root) {
   }
 }
 
+MockBlob::MockBlob(std::shared_ptr<MockBackend> backend) : backend_{backend} { }
+
 Bookmark MockBackend::getEntrypoint() {
   std::lock_guard<std::mutex> guard(mutex_);
   return entrypoint_;

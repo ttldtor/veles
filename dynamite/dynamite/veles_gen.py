@@ -32,25 +32,22 @@ from veles.deco.struct import StructFunc
 CPP_TEMPLATE = """
 #include "ui/disasm/disasm.h"
 #include "ui/disasm/mocks.h"
+#include "ui/disasm/gf100.h"
 
 namespace veles {{
 namespace ui {{
 namespace disasm {{
 namespace mocks{{
 
-class {blob_class} : public MockBlob  {{
-public:
-  {blob_class}() {{
+{blob_class}::{blob_class}() {{
 
 {TEXT_REPRESENTATIONS}
 {CHUNKS}
+{ENTRY_GENERATION}
 
   }}
 
-  class {window_class} : public Window {{
-  }};
-
-  std::shared_ptr<Chunk> make_chunk(ChunkID id,
+std::shared_ptr<Chunk> {blob_class}::make_chunk(ChunkID id,
                                     ChunkID parent,
                                     Bookmark pos_begin,
                                     Bookmark pos_end,
@@ -74,21 +71,6 @@ public:
 
         return chunk;
   }}
-
-
-
-
-
-  std::unique_ptr<Window> createWindow(const Bookmark& pos,
-                                       unsigned prev_n,
-                                       unsigned next_n) {{
-   std::unique_ptr<{window_class}> mw = std::make_unique<{window_class}>(root_);
-   return mw;
-
-
-  }}
-
-}};
 
 }}
 }}
@@ -152,8 +134,8 @@ class TextRepr:
         tr = cls()
         tr.klass = "Sublist"
         # let's hope that it's gonna work
-        tr.args = "std::initializer_list<std::unique_ptr<TextRepr>>{" \
-                + ", ".join(map(lambda arg : "std::move(" + arg.var_name() + ")", args)) \
+        tr.args = "{" \
+                + ", ".join(map(lambda arg : arg.var_name(), args)) \
                 + "}"
         return tr
 
@@ -161,7 +143,7 @@ class TextRepr:
         return self.name
 
     def decl_str(self):
-        return f"auto {self.name} = std::make_unique<{self.klass}>({self.args});"
+        return f"auto {self.name} = new {self.klass}({self.args});"
 
     def __str__(self):
         return f"TextRepr({self.args})"
@@ -203,12 +185,15 @@ class Chunk:
                           str(self.addr_end),
                           qsurround(self.type),
                           qsurround(self.display_name),
-                          "std::move("+ self.text_repr.var_name() + ")",
+                          "std::move(std::unique_ptr<TextRepr>("+ self.text_repr.var_name() + "))",
                           qsurround(self.comment)])
         return f"auto {self.name} = make_chunk({args});"
 
     def var_name(self):
         return self.name
+
+    def __str__(self):
+        return f"Chunk({self.type}, {self.addr_beg}:{self.addr_end})"
 
 
 class VelesCppGen:
@@ -234,7 +219,7 @@ class VelesCppGen:
         self.fix_chunk(self.file_chunk)
 
     def fix_chunk(self, chunk):
-        if not chunk.addr_beg or not chunk.addr_end:
+        if chunk.addr_beg is None or chunk.addr_end is None:
             for child in chunk.children:
                 self.fix_chunk(child)
 
@@ -329,6 +314,23 @@ class VelesCppGen:
     def chunks_str(self):
         return "\n".join(map(lambda r: r.decl_str(), self.chunks))
 
+    def entry_gen_str(self):
+        entry_fmt = "entries_.emplace_back(std::make_shared<{klass}>({chunk}));"
+        def chunk_traverse(chunk, entries):
+            if chunk.children:
+                entries.append(entry_fmt.format(klass="EntryChunkBegin", chunk=chunk.var_name()))
+                for child in chunk.children:
+                    chunk_traverse(child, entries)
+                entries.append(entry_fmt.format(klass="EntryChunkEnd", chunk=chunk.var_name()))
+            else:
+                entries.append(entry_fmt.format(klass="EntryChunkCollapsed", chunk=chunk.var_name()))
+
+        entries_arr = []
+        chunk_traverse(self.file_chunk, entries_arr)
+
+        return "\n".join(entries_arr)
+
+
     def build_string(self):
         vars = {
             'name': self.filename.replace('.', '_'),
@@ -339,13 +341,14 @@ class VelesCppGen:
 
         vars['TEXT_REPRESENTATIONS'] = self.text_reprs_str()
         vars['CHUNKS'] = self.chunks_str()
+        vars['ENTRY_GENERATION'] = self.entry_gen_str()
 
         return self.cpp_template.format(**vars)
 
 
 if __name__ == '__main__':
     cppgen = VelesCppGen(args.infile, CPP_TEMPLATE, forest, data,
-                         flat_bundles = False)
+                         flat_bundles = True)
     if args.outfile:
         with open(args.outfile, "w") as f:
             f.write(cppgen.build_string())

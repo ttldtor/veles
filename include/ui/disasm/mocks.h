@@ -117,6 +117,7 @@ class EntryFactory {
 
 class MockBackend {
  public:
+  explicit MockBackend() {}
   explicit MockBackend(std::shared_ptr<ChunkNode> root);
 
   const std::vector<std::shared_ptr<Entry>> getEntries();
@@ -127,7 +128,7 @@ class MockBackend {
 
   void generateEntries();
 
- private:
+ protected:
   std::mutex mutex_;
 
   std::shared_ptr<ChunkNode> root_;
@@ -163,6 +164,7 @@ class MockWindow : public Window {
 
 class MockBlob : public Blob {
  public:
+  explicit MockBlob(std::shared_ptr<MockBackend> backend);
   explicit MockBlob(std::shared_ptr<ChunkNode> root);
 
   std::unique_ptr<Window> createWindow(const Bookmark& pos, unsigned prev_n,

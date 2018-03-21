@@ -365,6 +365,7 @@ add_executable(main_ui
     ${INCLUDE_DIR}/ui/disasm/asmgen.h
     ${INCLUDE_DIR}/ui/disasm/disasm.h
     ${INCLUDE_DIR}/ui/disasm/tab.h
+    ${INCLUDE_DIR}/ui/disasm/gf100.h
     ${INCLUDE_DIR}/ui/disasm/arrows.h
     ${INCLUDE_DIR}/ui/disasm/widget.h
     ${INCLUDE_DIR}/ui/dockwidget.h
@@ -405,6 +406,7 @@ add_executable(main_ui
     ${SRC_DIR}/ui/disasm/asmgen.cc
     ${SRC_DIR}/ui/disasm/disasm.cc
     ${SRC_DIR}/ui/disasm/widget.cc
+    ${SRC_DIR}/ui/disasm/gf100.cc
     ${SRC_DIR}/ui/dockwidget.cc
     ${SRC_DIR}/ui/dockwidget_native.cc
     ${SRC_DIR}/ui/hexeditwidget.cc
