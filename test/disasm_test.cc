@@ -69,33 +69,5 @@ void entry_printer(const std::vector<std::shared_ptr<Entry>>& entries) {
 }
 
 int main() {
-  ChunkTreeFactory ctf;
-
-  std::unique_ptr<ChunkNode> root = ctf.generateTree(ChunkType::FILE);
-  ctf.setAddresses(root.get(), 0, 0x1000);
-
-  std::shared_ptr<ChunkNode> sroot{root.release()};
-
-  MockBlob blob(sroot);
-
-  auto entrypoint_future = blob.getEntrypoint();
-  auto entrypoint = entrypoint_future.result();
-
-  std::unique_ptr<Window> window = blob.createWindow(entrypoint, 2, 10);
-  entry_printer(window->entries());
-
-  std::cerr << "Scrollbar Index: " << window->currentScrollbarIndex() << " / "
-            << window->maxScrollbarIndex() << std::endl;
-
-  std::cout << "ACTION: COLLAPSE CHUNK ROOT" << std::endl;
-  auto done = window->chunkCollapseToggle(sroot.get()->chunk()->id);
-  done.waitForFinished();
-
-  entry_printer(window->entries());
-
-  std::cout << "ACTION: UNCOLLAPSE CHUNK ROOT" << std::endl;
-  done = window->chunkCollapseToggle(sroot.get()->chunk()->id);
-  done.waitForFinished();
-
-  std::cout << "entries.size() = " << window->entries().size() << std::endl;
 }
+

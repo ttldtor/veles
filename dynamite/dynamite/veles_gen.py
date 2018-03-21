@@ -40,24 +40,19 @@ namespace disasm {{
 namespace mocks{{
 
 {blob_class}::{blob_class}() {{
+}}
 
-{TEXT_REPRESENTATIONS}
-{CHUNKS}
-{ENTRY_GENERATION}
-
-  }}
-
-std::shared_ptr<Chunk> {blob_class}::make_chunk(ChunkID id,
-                                    ChunkID parent,
-                                    Bookmark pos_begin,
-                                    Bookmark pos_end,
-                                    Address addr_begin,
-                                    Address addr_end,
-                                    QString type,
-                                    QString display_name,
-                                    std::unique_ptr<TextRepr> text_repr,
-                                    QString comment) {{
-        auto chunk = std::make_shared<Chunk>();
+std::unique_ptr<ChunkMeta> {blob_class}::make_chunk(ChunkID id,
+                                                    ChunkID parent,
+                                                    Bookmark pos_begin,
+                                                    Bookmark pos_end,
+                                                    Address addr_begin,
+                                                    Address addr_end,
+                                                    QString type,
+                                                    QString display_name,
+                                                    std::unique_ptr<TextRepr> text_repr,
+                                                    QString comment) {{
+        auto chunk = std::make_unique<ChunkMeta>();
         chunk->id = id;
         chunk->parent_id = parent;
         chunk->pos_begin = pos_begin;
@@ -68,9 +63,17 @@ std::shared_ptr<Chunk> {blob_class}::make_chunk(ChunkID id,
         chunk->display_name = display_name;
         chunk->text_repr = std::move(text_repr);
         chunk->comment = comment;
+        chunk->collapsed = true;
 
         return chunk;
   }}
+
+std::unique_ptr<ChunkNode> {blob_class}::gibRoot() {{
+{TEXT_REPRESENTATIONS}
+{CHUNKS}
+{CHUNK_NODES}
+return {ROOT_CHUNK_NODE};
+}}
 
 }}
 }}
@@ -152,11 +155,13 @@ class TextRepr:
 class Chunk:
 
     next_var = make_prefixer("var_chunk_")
+    next_chunk_node = make_prefixer("var_chunk_node_")
     next_id = make_prefixer("chk_id_")
 
     def __init__(self, parent, addr_beg, addr_end, type, disp_name, repr, comm):
         self.name = Chunk.next_var()
         self.id = Chunk.next_id()
+        self.chunk_node = Chunk.next_chunk_node()
 
         self.parent = parent
         if isinstance(parent, Chunk):
@@ -187,7 +192,8 @@ class Chunk:
                           qsurround(self.display_name),
                           "std::move(std::unique_ptr<TextRepr>("+ self.text_repr.var_name() + "))",
                           qsurround(self.comment)])
-        return f"auto {self.name} = make_chunk({args});"
+        return "\n".join([f"auto {self.name} = make_chunk({args});",
+                          f"auto {self.chunk_node} = std::make_unique<ChunkNode>(std::move({self.name}));"])
 
     def var_name(self):
         return self.name
@@ -330,6 +336,14 @@ class VelesCppGen:
 
         return "\n".join(entries_arr)
 
+    def chunk_nodes_str(self):
+        rep = []
+        def chunk_traverse(chunk, arr):
+            for child in chunk.children:
+                chunk_traverse(child, arr)
+                rep.append("{var}->addChild(std::move({child}));".format(var=chunk.chunk_node, child=child.chunk_node))
+        chunk_traverse(self.file_chunk, rep)
+        return "\n".join(rep)
 
     def build_string(self):
         vars = {
@@ -341,7 +355,8 @@ class VelesCppGen:
 
         vars['TEXT_REPRESENTATIONS'] = self.text_reprs_str()
         vars['CHUNKS'] = self.chunks_str()
-        vars['ENTRY_GENERATION'] = self.entry_gen_str()
+        vars['CHUNK_NODES'] = self.chunk_nodes_str()
+        vars['ROOT_CHUNK_NODE'] = self.file_chunk.chunk_node
 
         return self.cpp_template.format(**vars)
 
