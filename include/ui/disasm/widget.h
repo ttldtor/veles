@@ -17,8 +17,11 @@
 
 #pragma once
 
+#include <iostream>
+
 #include <QObject>
 #include <QScrollArea>
+#include <QScrollBar>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 
@@ -55,6 +58,9 @@ class Widget : public QScrollArea {
   void setupMocks();
   void getEntrypoint();
 
+ protected:
+  void scrollContentsBy(int dx, int dy) override;
+
  private:
   void generateRows(std::vector<std::shared_ptr<Entry>> entries);
 
@@ -68,6 +74,10 @@ class Widget : public QScrollArea {
 
   std::vector<Row*> rows_;
   QVBoxLayout* rows_layout_;
+
+  QScrollBar scroll_bar_;
+
+  std::mutex mutex_;
 };
 
 }  // namespace disasm

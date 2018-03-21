@@ -48,7 +48,17 @@ Widget::Widget() {
 
   auto split_view = new QWidget;
   split_view->setLayout(split_layout);
+
   setWidget(split_view);
+  setVerticalScrollBar(&scroll_bar_);
+}
+
+void Widget::scrollContentsBy(int dx, int dy) {
+  std::lock_guard<std::mutex> guard(mutex_);
+
+  auto pos = blob_->getPosition(window_->currentScrollbarIndex() - dy);
+  window_->seek(pos, 50, 50);
+  generateRows(window_->entries());
 }
 
 void Widget::setupMocks() {
@@ -76,14 +86,21 @@ void Widget::getEntrypoint() {
 
 void Widget::getWindow() {
   Bookmark entrypoint = entrypoint_.result();
-  window_ = blob_->createWindow(entrypoint, 1, 1);
+  window_ = blob_->createWindow(entrypoint, 50, 50);
   connect(window_.get(), &Window::dataChanged, this, &Widget::updateRows);
+  auto max_height = (int)window_->maxScrollbarIndex();
+  if (max_height < 0) {
+    max_height = 0;
+  }
+  scroll_bar_.setRange(0, max_height);
 
   auto entries = window_->entries();
   generateRows(entries);
 }
 
-void Widget::updateRows() { generateRows(window_->entries()); }
+void Widget::updateRows() {
+  generateRows(window_->entries());
+}
 
 void Widget::generateRows(std::vector<std::shared_ptr<Entry>> entries) {
   while (rows_.size() < entries.size()) {
