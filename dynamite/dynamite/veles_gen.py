@@ -262,7 +262,7 @@ class VelesCppGen:
                 args.append(num)
             elif isinstance(arg, IsaSTMem):
                 # TODO(chivay): handle it gracefully
-                placeholder = TextRepr.make_text("[MEM]", True)
+                placeholder = TextRepr.make_text(str(arg), True)
                 args.append(placeholder)
             else:
                 raise NotImplementedError(repr(arg))
