@@ -276,9 +276,9 @@ class VelesCppGen:
             for child in block.children:
                 self.process_block(child, parent_chunk)
             return
-        t = TextRepr.make_text("Block", False)
+        t = TextRepr.make_text(block.get_name(), False)
         block_chunk = Chunk(parent_chunk, None, None,
-                            "BLOCK", "Block", t, "")
+                            "BLOCK", block.get_name(), t, "")
         self.add_text_repr(t)
         self.add_chunk(block_chunk)
 
