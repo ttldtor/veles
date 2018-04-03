@@ -16,6 +16,7 @@ public:
                                     Address addr_begin,
                                     Address addr_end,
                                     QString type,
+                                    ChunkType meta_type,
                                     QString display_name,
                                     std::unique_ptr<TextRepr> text_repr,
                                     QString comment);

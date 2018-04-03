@@ -49,6 +49,7 @@ std::unique_ptr<ChunkMeta> {blob_class}::make_chunk(ChunkID id,
                                                     Address addr_begin,
                                                     Address addr_end,
                                                     QString type,
+                                                    ChunkType meta_type,
                                                     QString display_name,
                                                     std::unique_ptr<TextRepr> text_repr,
                                                     QString comment) {{
@@ -64,6 +65,7 @@ std::unique_ptr<ChunkMeta> {blob_class}::make_chunk(ChunkID id,
         chunk->text_repr = std::move(text_repr);
         chunk->comment = comment;
         chunk->collapsed = true;
+        chunk->meta_type = meta_type;
 
         return chunk;
   }}
@@ -189,6 +191,7 @@ class Chunk:
                           str(self.addr_beg),
                           str(self.addr_end),
                           qsurround(self.type),
+                          "ChunkType::" + self.type,
                           qsurround(self.display_name),
                           "std::move(std::unique_ptr<TextRepr>("+ self.text_repr.var_name() + "))",
                           qsurround(self.comment)])
@@ -278,7 +281,7 @@ class VelesCppGen:
             return
         t = TextRepr.make_text(block.get_name(), False)
         block_chunk = Chunk(parent_chunk, None, None,
-                            "BLOCK", block.get_name(), t, "")
+                            "BASIC_BLOCK", block.get_name(), t, "")
         self.add_text_repr(t)
         self.add_chunk(block_chunk)
 

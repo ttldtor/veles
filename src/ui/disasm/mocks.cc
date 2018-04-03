@@ -36,7 +36,7 @@ bool chunk_collapse_toggle(const ChunkID& id, ChunkNode* node) {
     return false;
   }
 
-  if (node->chunk()->id == id) {
+  if (node->chunk()->id == id && node->chunk()->meta_type != ChunkType::INSTRUCTION) {
     node->chunk()->collapsed = !node->chunk()->collapsed;
     return true;
   }
