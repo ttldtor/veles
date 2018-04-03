@@ -48,7 +48,15 @@ QString Blank::string() const { return " "; }
 
 Number::Number(qint64 value, unsigned bit_width, unsigned base)
     : value_{value}, bit_width_{bit_width}, base_{base} {}
-QString Number::string() const { return QString::number(value_); };
+QString Number::string() const {
+  if (base_ == 16) {
+    return QString::number(value_, base_).prepend("0x");
+  }
+  if (base_ == 10) {
+    return QString::number(value_);
+  }
+  return QString::number(value_, base_).append(QString("(%1)").arg(base_));
+};
 const qint64 Number::value() { return value_; }
 const unsigned Number::bit_width() { return bit_width_; }
 const unsigned Number::base() { return base_; }
