@@ -36,7 +36,8 @@ bool chunk_collapse_toggle(const ChunkID& id, ChunkNode* node) {
     return false;
   }
 
-  if (node->chunk()->id == id && node->chunk()->meta_type != ChunkType::INSTRUCTION) {
+  if (node->chunk()->id == id &&
+      node->chunk()->meta_type != ChunkType::INSTRUCTION) {
     node->chunk()->collapsed = !node->chunk()->collapsed;
     return true;
   }
@@ -422,7 +423,7 @@ MockBackend::MockBackend(std::shared_ptr<ChunkNode> root) {
   }
 }
 
-MockBlob::MockBlob(std::shared_ptr<MockBackend> backend) : backend_{backend} { }
+MockBlob::MockBlob(std::shared_ptr<MockBackend> backend) : backend_{backend} {}
 
 Bookmark MockBackend::getEntrypoint() {
   std::lock_guard<std::mutex> guard(mutex_);

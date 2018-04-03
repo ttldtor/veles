@@ -22,7 +22,6 @@ namespace veles {
 namespace ui {
 namespace disasm {
 
-
 Widget::Widget() {
   setupMocks();
   getEntrypoint();
@@ -55,7 +54,8 @@ Widget::Widget() {
 
 void Widget::setupMocks() {
   auto mockmap = std::make_shared<mocks::Mock_test_map>();
-  std::unique_ptr<mocks::MockBlob> mb = std::make_unique<mocks::MockBlob>(mockmap->gibRoot());
+  std::unique_ptr<mocks::MockBlob> mb =
+      std::make_unique<mocks::MockBlob>(mockmap->gibRoot());
   blob_ = std::unique_ptr<Blob>(std::move(mb));
 }
 

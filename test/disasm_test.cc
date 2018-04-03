@@ -68,6 +68,4 @@ void entry_printer(const std::vector<std::shared_ptr<Entry>>& entries) {
   }
 }
 
-int main() {
-}
-
+int main() {}
