@@ -29,7 +29,7 @@ namespace veles {
 namespace ui {
 namespace disasm {
 
-#define ROW_HEIGHT 50
+#define ROW_HEIGHT 18
 
 class Row : public QWidget {
   Q_OBJECT

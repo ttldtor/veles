@@ -22,9 +22,6 @@ namespace ui {
 namespace disasm {
 
 Widget::Widget() {
-  setupMocks();
-  getEntrypoint();
-
   setWidgetResizable(true);
   setFont(util::settings::theme::font());
 
@@ -47,19 +44,25 @@ Widget::Widget() {
   split_layout->addLayout(rows_with_stretch, 0);
 
   split_layout->setSizeConstraint(QLayout::SetDefaultConstraint);
-  scroll_bar_index_ = 0;
 
   auto split_view = new QWidget;
   split_view->setLayout(split_layout);
 
-  scroll_bar_ = new QScrollBar;
-  scroll_bar_->setTracking(false);
-
   setWidget(split_view);
+
+  scroll_bar_ = new QScrollBar(this);
   setVerticalScrollBar(scroll_bar_);
+  setVerticalScrollBarPolicy(Qt::ScrollBarPolicy::ScrollBarAlwaysOn);
+
+  scroll_bar_->setSingleStep(ROW_HEIGHT);
+  scroll_bar_->setPageStep(ROW_HEIGHT*50);
+  scroll_bar_->setTracking(false);
 
   connect(scroll_bar_, &QScrollBar::valueChanged, this,
           &Widget::scrollbarChanged);
+
+  setupMocks();
+  getEntrypoint();
 }
 
 void Widget::scrollbarChanged(int value) {
@@ -70,11 +73,11 @@ void Widget::scrollbarChanged(int value) {
   std::cerr << "Widget::scrollbarChanged: scroll index=" << scroll_bar_index_ << std::endl;
 
   auto window_index_ = window_->currentScrollbarIndex();
-  if (abs(window_index_ - scroll_bar_index_) > 100) {
+  if (abs(window_index_ - scroll_bar_index_) > 150) {
     auto pos = blob_->getPosition(scroll_bar_index_);
     pos.waitForFinished();
 
-    window_->seek(pos.result(), 150, 150);
+    window_->seek(pos.result(), 500, 500);
     generateRows(window_->entries());
 
     std::cerr << "Widget::scrollContentsBy: generating rows" << std::endl;
@@ -108,7 +111,9 @@ void Widget::getEntrypoint() {
 }
 
 void Widget::getWindow() {
+  entrypoint_.waitForFinished();
   Bookmark entrypoint = entrypoint_.result();
+
   window_ = blob_->createWindow(entrypoint, 500, 500);
   connect(window_.get(), &Window::dataChanged, this, &Widget::updateRows);
 
@@ -121,8 +126,8 @@ void Widget::getWindow() {
 
   auto index = window_->currentScrollbarIndex();
 
-  scroll_bar_->setRange(0, max_height*ROW_HEIGHT);
-  scroll_bar_->setValue(index*ROW_HEIGHT);
+  verticalScrollBar()->setRange(0, max_height*ROW_HEIGHT);
+  verticalScrollBar()->setValue(index*ROW_HEIGHT);
 
   std::cerr << "Widget::GetWindow: Range: 0-" << max_height
         << "; Value: " << index << std::endl;
