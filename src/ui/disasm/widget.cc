@@ -54,8 +54,7 @@ Widget::Widget() {
 
 void Widget::setupMocks() {
   auto mockmap = std::make_shared<mocks::Mock_test_map>();
-  std::unique_ptr<mocks::MockBlob> mb =
-      std::make_unique<mocks::MockBlob>(mockmap->gibRoot());
+  std::unique_ptr<mocks::MockBlob> mb = std::make_unique<mocks::MockBlob>(std::unique_ptr<mocks::ChunkNode>(mockmap->gibRoot()));
   blob_ = std::unique_ptr<Blob>(std::move(mb));
 }
 

@@ -42,7 +42,7 @@ namespace mocks{{
 {blob_class}::{blob_class}() {{
 }}
 
-std::unique_ptr<ChunkMeta> {blob_class}::make_chunk(ChunkID id,
+ChunkMeta* {blob_class}::make_chunk(ChunkID id,
                                                     ChunkID parent,
                                                     Bookmark pos_begin,
                                                     Bookmark pos_end,
@@ -51,9 +51,9 @@ std::unique_ptr<ChunkMeta> {blob_class}::make_chunk(ChunkID id,
                                                     QString type,
                                                     ChunkType meta_type,
                                                     QString display_name,
-                                                    std::unique_ptr<TextRepr> text_repr,
+                                                    TextRepr* text_repr,
                                                     QString comment) {{
-        auto chunk = std::make_unique<ChunkMeta>();
+        auto chunk = new ChunkMeta();
         chunk->id = id;
         chunk->parent_id = parent;
         chunk->pos_begin = pos_begin;
@@ -62,7 +62,7 @@ std::unique_ptr<ChunkMeta> {blob_class}::make_chunk(ChunkID id,
         chunk->addr_end = addr_end;
         chunk->type = type;
         chunk->display_name = display_name;
-        chunk->text_repr = std::move(text_repr);
+        chunk->text_repr = std::unique_ptr<TextRepr>(text_repr);
         chunk->comment = comment;
         chunk->collapsed = true;
         chunk->meta_type = meta_type;
@@ -70,7 +70,7 @@ std::unique_ptr<ChunkMeta> {blob_class}::make_chunk(ChunkID id,
         return chunk;
   }}
 
-std::unique_ptr<ChunkNode> {blob_class}::gibRoot() {{
+ChunkNode* {blob_class}::gibRoot() {{
 {TEXT_REPRESENTATIONS}
 {CHUNKS}
 {CHUNK_NODES}
@@ -193,10 +193,10 @@ class Chunk:
                           qsurround(self.type),
                           "ChunkType::" + self.type,
                           qsurround(self.display_name),
-                          "std::move(std::unique_ptr<TextRepr>("+ self.text_repr.var_name() + "))",
+                          self.text_repr.var_name(),
                           qsurround(self.comment)])
         return "\n".join([f"auto {self.name} = make_chunk({args});",
-                          f"auto {self.chunk_node} = std::make_unique<ChunkNode>(std::move({self.name}));"])
+                          f"auto {self.chunk_node} = new ChunkNode(std::unique_ptr<ChunkMeta>({self.name}));"])
 
     def var_name(self):
         return self.name
@@ -344,7 +344,7 @@ class VelesCppGen:
         def chunk_traverse(chunk, arr):
             for child in chunk.children:
                 chunk_traverse(child, arr)
-                rep.append("{var}->addChild(std::move({child}));".format(var=chunk.chunk_node, child=child.chunk_node))
+                rep.append("{var}->addChild(std::unique_ptr<ChunkNode>({child}));".format(var=chunk.chunk_node, child=child.chunk_node))
         chunk_traverse(self.file_chunk, rep)
         return "\n".join(rep)
 
