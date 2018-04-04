@@ -57,7 +57,7 @@ class Widget : public QScrollArea {
   void getEntrypoint();
 
  protected:
-  void scrollContentsBy(int dx, int dy) override;
+  void scrollbarChanged(int value);
 
  private:
   void generateRows(std::vector<std::shared_ptr<Entry>> entries);
@@ -73,7 +73,7 @@ class Widget : public QScrollArea {
   std::vector<Row*> rows_;
   QVBoxLayout* rows_layout_;
 
-  QScrollBar scroll_bar_;
+  QScrollBar *scroll_bar_;
   ScrollbarIndex scroll_bar_index_;
 
   std::mutex mutex_;

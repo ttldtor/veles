@@ -52,37 +52,36 @@ Widget::Widget() {
   auto split_view = new QWidget;
   split_view->setLayout(split_layout);
 
+  scroll_bar_ = new QScrollBar;
+  scroll_bar_->setTracking(false);
+
   setWidget(split_view);
-  setVerticalScrollBar(&scroll_bar_);
+  setVerticalScrollBar(scroll_bar_);
+
+  connect(scroll_bar_, &QScrollBar::valueChanged, this,
+          &Widget::scrollbarChanged);
 }
 
-void Widget::scrollContentsBy(int dx, int dy) {
-  std::cerr << "Widget::scrollContentsBy: dy = " << dy << std::endl;
-
-
-  std::cerr << "Widget::scrollContentsBy: -dy=" << -dy << ", sbi=" << scroll_bar_index_ << std::endl;
+void Widget::scrollbarChanged(int value) {
+  std::cerr << "Widget::scrollbarChanged: value=" << value << std::endl;
 
   mutex_.lock();
-  scroll_bar_index_ -= dy;
-  if (scroll_bar_index_ < 0) {
-    scroll_bar_index_ = 0;
-  } else if (window_->maxScrollbarIndex() < scroll_bar_index_) {
-    scroll_bar_index_ = window_->maxScrollbarIndex();
-  }
+  scroll_bar_index_ = value / ROW_HEIGHT;
+  std::cerr << "Widget::scrollbarChanged: scroll index=" << scroll_bar_index_ << std::endl;
 
   auto window_index_ = window_->currentScrollbarIndex();
-  if (abs(window_index_ - scroll_bar_index_) > 400) {
+  if (abs(window_index_ - scroll_bar_index_) > 100) {
     auto pos = blob_->getPosition(scroll_bar_index_);
     pos.waitForFinished();
 
-    window_->seek(pos.result(), 500, 500);
+    window_->seek(pos.result(), 150, 150);
     generateRows(window_->entries());
 
     std::cerr << "Widget::scrollContentsBy: generating rows" << std::endl;
   }
   mutex_.unlock();
 
-  viewport()->scroll(dx, dy);
+  viewport()->update();
 }
 
 void Widget::setupMocks() {
@@ -121,8 +120,10 @@ void Widget::getWindow() {
   }
 
   auto index = window_->currentScrollbarIndex();
-  scroll_bar_.setRange(0, max_height);
-  scroll_bar_.setValue(index);
+
+  scroll_bar_->setRange(0, max_height*ROW_HEIGHT);
+  scroll_bar_->setValue(index*ROW_HEIGHT);
+
   std::cerr << "Widget::GetWindow: Range: 0-" << max_height
         << "; Value: " << index << std::endl;
 }
