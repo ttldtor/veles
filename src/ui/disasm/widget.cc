@@ -46,6 +46,9 @@ Widget::Widget() {
   split_layout->addWidget(arrows_, 0, Qt::AlignTop);
   split_layout->addLayout(rows_with_stretch, 0);
 
+  split_layout->setSizeConstraint(QLayout::SetDefaultConstraint);
+  scroll_bar_index_ = 0;
+
   auto split_view = new QWidget;
   split_view->setLayout(split_layout);
 
@@ -54,11 +57,32 @@ Widget::Widget() {
 }
 
 void Widget::scrollContentsBy(int dx, int dy) {
-  std::lock_guard<std::mutex> guard(mutex_);
+  std::cerr << "Widget::scrollContentsBy: dy = " << dy << std::endl;
 
-  auto pos = blob_->getPosition(window_->currentScrollbarIndex() - dy);
-  window_->seek(pos, 50, 50);
-  generateRows(window_->entries());
+
+  std::cerr << "Widget::scrollContentsBy: -dy=" << -dy << ", sbi=" << scroll_bar_index_ << std::endl;
+
+  mutex_.lock();
+  scroll_bar_index_ -= dy;
+  if (scroll_bar_index_ < 0) {
+    scroll_bar_index_ = 0;
+  } else if (window_->maxScrollbarIndex() < scroll_bar_index_) {
+    scroll_bar_index_ = window_->maxScrollbarIndex();
+  }
+
+  auto window_index_ = window_->currentScrollbarIndex();
+  if (abs(window_index_ - scroll_bar_index_) > 400) {
+    auto pos = blob_->getPosition(scroll_bar_index_);
+    pos.waitForFinished();
+
+    window_->seek(pos.result(), 500, 500);
+    generateRows(window_->entries());
+
+    std::cerr << "Widget::scrollContentsBy: generating rows" << std::endl;
+  }
+  mutex_.unlock();
+
+  viewport()->scroll(dx, dy);
 }
 
 void Widget::setupMocks() {
@@ -86,16 +110,21 @@ void Widget::getEntrypoint() {
 
 void Widget::getWindow() {
   Bookmark entrypoint = entrypoint_.result();
-  window_ = blob_->createWindow(entrypoint, 50, 50);
+  window_ = blob_->createWindow(entrypoint, 500, 500);
   connect(window_.get(), &Window::dataChanged, this, &Widget::updateRows);
+
+  std::cerr << "Widget::GetWindow: got window" << std::endl;
+
   auto max_height = (int)window_->maxScrollbarIndex();
   if (max_height < 0) {
     max_height = 0;
   }
-  scroll_bar_.setRange(0, max_height);
 
-  auto entries = window_->entries();
-  generateRows(entries);
+  auto index = window_->currentScrollbarIndex();
+  scroll_bar_.setRange(0, max_height);
+  scroll_bar_.setValue(index);
+  std::cerr << "Widget::GetWindow: Range: 0-" << max_height
+        << "; Value: " << index << std::endl;
 }
 
 void Widget::updateRows() {

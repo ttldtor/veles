@@ -44,8 +44,6 @@ namespace disasm {
 class Widget : public QScrollArea {
   Q_OBJECT
 
-  QHBoxLayout* layout_;
-
  public slots:
   void getWindow();
   void updateRows();
@@ -76,6 +74,7 @@ class Widget : public QScrollArea {
   QVBoxLayout* rows_layout_;
 
   QScrollBar scroll_bar_;
+  ScrollbarIndex scroll_bar_index_;
 
   std::mutex mutex_;
 };
